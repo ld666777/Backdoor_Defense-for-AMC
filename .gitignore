@@ -10,21 +10,21 @@ __pycache__/
 .vscode/
 
 # Dataset
-data/
+/data/
 *.pkl
 
 # Checkpoints and models
-checkpoints/
+/checkpoints/
 *.pt
 *.pth
 *.ckpt
 
 # Results
-results/
-runs/
-outputs/
-figures/
-latex_tables/
+/results/
+/runs/
+/outputs/
+/figures/
+/latex_tables/
 
 # System
 .DS_Store
