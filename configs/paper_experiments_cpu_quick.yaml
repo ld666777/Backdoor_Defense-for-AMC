@@ -1,0 +1,84 @@
+# -*- coding: utf-8 -*-
+# 论文批量实验快速试跑配置：用于检查代码流程，不建议作为论文正式结果。
+base_config: "configs/quick_cpu.yaml"
+
+paper:
+  root_dir: "results/paper_experiments_quick"
+  generated_config_dir: "results/paper_experiments_quick/generated_configs"
+  processed_dir: "data/processed_paper_quick"
+  poisoned_dir: "data/poisoned/paper_experiments_quick"
+  checkpoint_dir: "checkpoints/paper_experiments_quick"
+  skip_existing: true
+  sample_limit: 30000
+  primary_model: "vtcnn2_lite"
+  primary_target: "QPSK"
+  primary_attack: "time_add"
+  primary_poison_rate: 0.03
+  stages: ["make_poison", "train_backdoor", "detect", "repair", "evaluate", "plot"]
+  train_clean_if_missing: true
+  prepare_data_if_missing: true
+  overrides:
+    device:
+      use_gpu: false
+      num_threads: 4
+    train:
+      epochs: 8
+      batch_size: 256
+      early_stop_patience: 3
+    repair:
+      epochs: 3
+      batch_size: 256
+      early_stop_patience: 2
+    defense:
+      transform_num: 4
+      sample_limit: 10000
+      suspicious_percentile: 95
+
+sweep:
+  models: ["vtcnn2_lite"]
+  attack_types: ["time_add"]
+  poison_rates: [0.03]
+  target_classes: ["QPSK"]
+
+model_comparison:
+  enable: true
+  models: ["cnn1d_lite", "vtcnn2_lite"]
+  attack_type: "time_add"
+  poison_rate: 0.03
+  target_class: "QPSK"
+
+ablation:
+  enable: true
+  model: "vtcnn2_lite"
+  attack_type: "time_add"
+  poison_rate: 0.03
+  target_class: "QPSK"
+  variants:
+    - name: "Full"
+      description: "SNR-aware + dual-domain + consistency repair"
+      snr_aware: true
+      dual_domain: true
+      consistency_repair: true
+      fusion_alpha: 0.6
+      fusion_beta: 0.4
+    - name: "w/o SNR-aware"
+      description: "Use class-wise feature anomaly without SNR grouping"
+      snr_aware: false
+      dual_domain: true
+      consistency_repair: true
+      fusion_alpha: 0.6
+      fusion_beta: 0.4
+    - name: "w/o dual-domain"
+      description: "Use SNR-aware feature anomaly only"
+      snr_aware: true
+      dual_domain: false
+      consistency_repair: true
+      fusion_alpha: 1.0
+      fusion_beta: 0.0
+    - name: "w/o consistency"
+      description: "Disable RF-domain consistency loss during repair"
+      snr_aware: true
+      dual_domain: true
+      consistency_repair: false
+      fusion_alpha: 0.6
+      fusion_beta: 0.4

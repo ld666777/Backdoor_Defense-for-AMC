@@ -1,0 +1,126 @@
+# -*- coding: utf-8 -*-
+# 论文批量实验配置。
+# 说明：本文件由 scripts/paper_experiments_cpu.py 读取，用于自动生成多组单次实验配置。
+
+base_config: "configs/full_cpu.yaml"
+
+paper:
+  # 所有批量实验输出都放在该目录下。
+  root_dir: "results/paper_experiments"
+  generated_config_dir: "results/paper_experiments/generated_configs"
+
+  # 为了避免覆盖 quick 实验，论文实验使用单独的数据、投毒数据和 checkpoint 目录。
+  processed_dir: "data/processed_paper"
+  poisoned_dir: "data/poisoned/paper_experiments"
+  checkpoint_dir: "checkpoints/paper_experiments"
+
+  # CPU 机器建议先设为 true，确认任务列表无误后再改为 false 或命令行不加 --dry_run。
+  skip_existing: true
+
+  # 如果你想先快速试跑论文批处理，可以打开 sample_limit 并减少 epoch。
+  # 正式论文结果建议保持 null。
+  sample_limit: null
+
+  # 默认模型和目标类，用于生成 poisoning-rate 表和消融表。
+  primary_model: "vtcnn2_lite"
+  primary_target: "QPSK"
+  primary_attack: "time_add"
+  primary_poison_rate: 0.03
+
+  # 每个单次实验的 stage 顺序。一般不需要修改。
+  stages:
+    - "make_poison"
+    - "train_backdoor"
+    - "detect"
+    - "repair"
+    - "evaluate"
+    - "plot"
+
+  # 是否在每个模型第一次出现时自动训练干净模型。
+  train_clean_if_missing: true
+
+  # 是否在开始前准备数据。
+  prepare_data_if_missing: true
+
+  # 单次实验配置覆盖项。CPU 上可适当降低 epochs。
+  overrides:
+    device:
+      use_gpu: false
+      num_threads: 4
+    train:
+      epochs: 50
+      batch_size: 256
+      early_stop_patience: 8
+    repair:
+      epochs: 15
+      batch_size: 256
+      early_stop_patience: 6
+    defense:
+      transform_num: 8
+      suspicious_percentile: 95
+
+# 攻击扫描实验：生成论文主表、不同攻击类型表、不同投毒比例表。
+sweep:
+  models: ["vtcnn2_lite"]
+  attack_types: ["time_add", "phase", "freq"]
+  poison_rates: [0.01, 0.03, 0.05, 0.10]
+  target_classes: ["QPSK", "QAM16", "WBFM"]
+
+# 多模型对比实验：用于证明方法不是只对单个 backbone 有效。
+model_comparison:
+  enable: true
+  models: ["cnn1d_lite", "vtcnn2_lite", "resnet1d_lite"]
+  attack_type: "time_add"
+  poison_rate: 0.03
+  target_class: "QPSK"
+
+# 消融实验：用于生成 table_ablation.tex。
+ablation:
+  enable: true
+  model: "vtcnn2_lite"
+  attack_type: "time_add"
+  poison_rate: 0.03
+  target_class: "QPSK"
+  variants:
+    - name: "Full"
+      description: "SNR-aware + dual-domain + consistency repair"
+      snr_aware: true
+      dual_domain: true
+      consistency_repair: true
+      fusion_alpha: 0.6
+      fusion_beta: 0.4
+    - name: "w/o SNR-aware"
+      description: "Use class-wise feature anomaly without SNR grouping"
+      snr_aware: false
+      dual_domain: true
+      consistency_repair: true
+      fusion_alpha: 0.6
+      fusion_beta: 0.4
+    - name: "w/o dual-domain"
+      description: "Use SNR-aware feature anomaly only"
+      snr_aware: true
+      dual_domain: false
+      consistency_repair: true
+      fusion_alpha: 1.0
+      fusion_beta: 0.0
+    - name: "w/o consistency"
+      description: "Disable RF-domain consistency loss during repair"
+      snr_aware: true
+      dual_domain: true
+      consistency_repair: false
+      fusion_alpha: 0.6
+      fusion_beta: 0.4
+    - name: "Feature only"
+      description: "Only use SNR-aware feature score"
+      snr_aware: true
+      dual_domain: false
+      consistency_repair: false
+      fusion_alpha: 1.0
+      fusion_beta: 0.0
+    - name: "Dual only"
+      description: "Only use dual-domain score for final ranking"
+      snr_aware: true
+      dual_domain: true
+      consistency_repair: false
+      fusion_alpha: 0.0
+      fusion_beta: 1.0

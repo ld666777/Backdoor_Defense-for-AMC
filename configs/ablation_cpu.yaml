@@ -1,0 +1,20 @@
+# 消融实验配置模板。可复制后修改开关。
+base_config: "configs/quick_cpu.yaml"
+ablation:
+  variants:
+    - name: "full"
+      use_snr_aware: true
+      use_dual_domain: true
+      use_consistency_repair: true
+    - name: "w_o_snr_aware"
+      use_snr_aware: false
+      use_dual_domain: true
+      use_consistency_repair: true
+    - name: "w_o_dual_domain"
+      use_snr_aware: true
+      use_dual_domain: false
+      use_consistency_repair: true
+    - name: "w_o_consistency"
+      use_snr_aware: true
+      use_dual_domain: true
+      use_consistency_repair: false

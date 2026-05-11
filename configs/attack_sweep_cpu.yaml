@@ -1,0 +1,6 @@
+# 攻击参数扫描模板。建议论文正式实验时使用。
+sweep:
+  attack_types: ["time_add", "phase", "freq"]
+  poison_rates: [0.01, 0.03, 0.05, 0.10]
+  target_classes: ["QPSK", "QAM16", "WBFM"]
+  models: ["cnn1d_lite", "vtcnn2_lite"]

@@ -1,0 +1,31 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# Dataset
+data/
+*.pkl
+
+# Checkpoints and models
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Results
+results/
+runs/
+outputs/
+figures/
+latex_tables/
+
+# System
+.DS_Store
+Thumbs.db

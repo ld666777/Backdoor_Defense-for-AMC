@@ -1,0 +1,83 @@
+project:
+  name: "amr_backdoor_defense_cpu"
+  seed: 2026
+  save_dir: "results"
+
+paths:
+  raw_path: "data/raw/RML2016.10a_dict.pkl"
+  processed_dir: "data/processed"
+  poisoned_dir: "data/poisoned"
+  checkpoint_dir: "checkpoints"
+  result_dir: "results"
+
+device:
+  use_gpu: false
+  num_threads: 4
+
+data:
+  sample_length: 128
+  normalize: true
+  train_ratio: 0.6
+  val_ratio: 0.2
+  test_ratio: 0.2
+  selected_snr: [-6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+  selected_mods: "all"
+  sample_limit: null
+
+model:
+  name: "vtcnn2_lite"
+  num_classes: 11
+  input_channels: 2
+  feature_dim: 128
+  dropout: 0.5
+
+train:
+  batch_size: 256
+  epochs: 20
+  lr: 0.001
+  weight_decay: 0.00001
+  num_workers: 0
+  early_stop_patience: 5
+
+attack:
+  type: "time_add"
+  poison_rate: 0.03
+  target_class: "QPSK"
+  source_classes: "all_except_target"
+  trigger_length: 8
+  trigger_amplitude: 0.08
+  trigger_position: "tail"
+  phase_angle: 0.35
+  freq_bin: 7
+
+# 防御模块配置
+defense:
+  snr_bins:
+    low: [-20, -8]
+    mid: [-6, 6]
+    high: [8, 18]
+  anomaly_metric: "diag_mahalanobis"
+  anomaly_percentile: 95
+  dual_domain_enable: true
+  transform_num: 8
+  sample_limit: null
+  fusion_alpha: 0.6
+  fusion_beta: 0.4
+  suspicious_percentile: 95
+
+repair:
+  strategy: "filter_and_finetune"
+  epochs: 8
+  lr: 0.0002
+  batch_size: 256
+  use_consistency_loss: true
+  lambda_consistency: 0.2
+  early_stop_patience: 4
+
+evaluation:
+  batch_size: 512
+  calculate_by_snr: true
+  calculate_confusion: true
+  calculate_asr: true
+  save_csv: true
+  save_figures: true
